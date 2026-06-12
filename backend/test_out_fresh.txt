@@ -1,0 +1,328 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.13, pytest-9.0.3, pluggy-1.6.0
+rootdir: C:\Users\mahip\OneDrive\Desktop\pk\portfolio\backend
+plugins: anyio-4.9.0, langsmith-0.8.11, asyncio-1.3.0, cov-7.1.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 20 items
+
+tests\test_claude.py ...                                                 [ 15%]
+tests\test_config.py .                                                   [ 20%]
+tests\test_embeddings.py ...F                                            [ 40%]
+tests\test_ingestion.py .                                                [ 45%]
+tests\test_pipeline.py ..                                                [ 55%]
+tests\test_retrieval.py ..                                               [ 65%]
+tests\test_routes.py .....                                               [ 90%]
+tests\test_supabase.py F.                                                [100%]
+
+================================== FAILURES ===================================
+_____________ TestEmbeddingsIntegration.test_query_doc_different ______________
+
+text = 'Pavan Kumar AI Engineer'
+
+    async def embed_query(text: str) -> list[float]:
+        """
+        Embed a user question for similarity search.
+        Uses input_type='query' for better retrieval.
+        """
+        try:
+            client = get_voyage_client()
+            if client is None:
+                return get_mock_embedding(settings.VOYAGE_EMBEDDING_DIM)
+    
+>           result = client.embed(
+                texts=[text],
+                model=settings.VOYAGE_MODEL,
+                input_type="query"
+            )
+
+services\embeddings.py:37: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\voyageai\client.py:79: in embed
+    for attempt in self._make_retry_controller():
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\tenacity\__init__.py:443: in __iter__
+    do = self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\tenacity\__init__.py:376: in iter
+    result = action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\tenacity\__init__.py:418: in exc_check
+    raise retry_exc.reraise()
+          ^^^^^^^^^^^^^^^^^^^
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\tenacity\__init__.py:185: in reraise
+    raise self.last_attempt.result()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\concurrent\futures\_base.py:449: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\voyageai\client.py:81: in embed
+    response = voyageai.Embedding.create(
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\voyageai\api_resources\embedding.py:19: in create
+    response = super().create(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\voyageai\api_resources\api_resource.py:45: in create
+    response = requestor.request(
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\voyageai\api_resources\api_requestor.py:146: in request
+    resp = self._interpret_response(result)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\voyageai\api_resources\api_requestor.py:394: in _interpret_response
+    return self._interpret_response_line(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <voyageai.api_resources.api_requestor.APIRequestor object at 0x000001647E8496E0>
+rbody = '{"detail":"You have not yet added your payment method in the billing page and will have reduced rate limits of 3 RPM ...r several minutes. See our pricing docs (https://docs.voyageai.com/docs/pricing) for the free tokens for your model."}'
+rcode = 429
+rheaders = {'date': 'Wed, 10 Jun 2026 14:12:37 GMT', 'server': 'uvicorn', 'Content-Length': '601', 'content-type': 'application/j...: '8867f71276e42720eda3d6e4b311d88b', 'Via': '1.1 google', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'}
+
+    def _interpret_response_line(self, rbody: str, rcode: int, rheaders) -> VoyageHttpResponse:
+        # HTTP 204 response code does not have any content in the body.
+        if rcode == 204:
+            return VoyageHttpResponse(None, rheaders)
+    
+        if rcode == 500:
+            raise error.ServerError(
+                "The server failed to process the request.",
+                rbody,
+                rcode,
+                headers=rheaders,
+            )
+        elif rcode in [502, 503, 504]:
+            raise error.ServiceUnavailableError(
+                "The server is overloaded or not ready yet.",
+                rbody,
+                rcode,
+                headers=rheaders,
+            )
+        try:
+            if "text/plain" in rheaders.get("Content-Type", ""):
+                data = rbody
+            else:
+                data = json.loads(rbody)
+        except (JSONDecodeError, UnicodeDecodeError) as e:
+            raise error.APIError(
+                f"HTTP code {rcode} from API ({rbody})", rbody, rcode, headers=rheaders
+            ) from e
+    
+        resp = VoyageHttpResponse(data, rheaders)
+        if 400 <= rcode < 500:
+>           raise self.handle_error_response(rbody, rcode, resp.data, rheaders)
+E           voyageai.error.RateLimitError: You have not yet added your payment method in the billing page and will have reduced rate limits of 3 RPM and 10K TPM. To unlock our standard rate limits, please add a payment method in the billing page for the appropriate organization in the user dashboard (https://dashboard.voyageai.com/). Even with payment methods entered, the free tokens (200M tokens for Voyage series 3) will still apply. After adding a payment method, you should see your rate limits increase after several minutes. See our pricing docs (https://docs.voyageai.com/docs/pricing) for the free tokens for your model.
+
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\voyageai\api_resources\api_requestor.py:445: RateLimitError
+
+The above exception was the direct cause of the following exception:
+
+self = <tests.test_embeddings.TestEmbeddingsIntegration testMethod=test_query_doc_different>
+
+    async def test_query_doc_different(self):
+        same_text = "Pavan Kumar AI Engineer"
+>       q_emb = await embed_query(same_text)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_embeddings.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+text = 'Pavan Kumar AI Engineer'
+
+    async def embed_query(text: str) -> list[float]:
+        """
+        Embed a user question for similarity search.
+        Uses input_type='query' for better retrieval.
+        """
+        try:
+            client = get_voyage_client()
+            if client is None:
+                return get_mock_embedding(settings.VOYAGE_EMBEDDING_DIM)
+    
+            result = client.embed(
+                texts=[text],
+                model=settings.VOYAGE_MODEL,
+                input_type="query"
+            )
+            embedding = result.embeddings[0]
+            logger.info(
+                f"Query embedded successfully. Dim: {len(embedding)}"
+            )
+            return embedding
+        except Exception as e:
+            logger.error(f"Embedding query failed: {e}")
+>           raise EmbeddingError(f"Voyage AI embedding failed: {e}") from e
+E           exceptions.errors.EmbeddingError: Voyage AI embedding failed: You have not yet added your payment method in the billing page and will have reduced rate limits of 3 RPM and 10K TPM. To unlock our standard rate limits, please add a payment method in the billing page for the appropriate organization in the user dashboard (https://dashboard.voyageai.com/). Even with payment methods entered, the free tokens (200M tokens for Voyage series 3) will still apply. After adding a payment method, you should see your rate limits increase after several minutes. See our pricing docs (https://docs.voyageai.com/docs/pricing) for the free tokens for your model.
+
+services\embeddings.py:49: EmbeddingError
+---------------------------- Captured stdout call -----------------------------
+2026-06-10 19:42:37 | ERROR    | services.embeddings | Embedding query failed: You have not yet added your payment method in the billing page and will have reduced rate limits of 3 RPM and 10K TPM. To unlock our standard rate limits, please add a payment method in the billing page for the appropriate organization in the user dashboard (https://dashboard.voyageai.com/). Even with payment methods entered, the free tokens (200M tokens for Voyage series 3) will still apply. After adding a payment method, you should see your rate limits increase after several minutes. See our pricing docs (https://docs.voyageai.com/docs/pricing) for the free tokens for your model.
+------------------------------ Captured log call ------------------------------
+WARNING  asyncio:base_events.py:2056 Executing <Task finished name='Task-32' coro=<TestEmbeddingsIntegration.test_query_doc_different() done, defined at C:\Users\mahip\OneDrive\Desktop\pk\portfolio\backend\tests\test_embeddings.py:55> exception=EmbeddingError('Voyage AI embedding failed: You have not yet added your payment method in the billing page and will have reduced rate limits of 3 RPM and 10K TPM. To unlock our standard rate limits, please add a payment method in the billing page for the appropriate organization in the user dashboard (https://dashboard.voyageai.com/). Even with payment methods entered, the free tokens (200M tokens for Voyage series 3) will still apply. After adding a payment method, you should see your rate limits increase after several minutes. See our pricing docs (https://docs.voyageai.com/docs/pricing) for the free tokens for your model.') created at C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py:100> took 0.404 seconds
+_____________ TestSupabaseIntegration.test_match_chunks_function ______________
+
+text = "What are Pavan's skills?"
+
+    async def embed_query(text: str) -> list[float]:
+        """
+        Embed a user question for similarity search.
+        Uses input_type='query' for better retrieval.
+        """
+        try:
+            client = get_voyage_client()
+            if client is None:
+                return get_mock_embedding(settings.VOYAGE_EMBEDDING_DIM)
+    
+>           result = client.embed(
+                texts=[text],
+                model=settings.VOYAGE_MODEL,
+                input_type="query"
+            )
+
+services\embeddings.py:37: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\voyageai\client.py:79: in embed
+    for attempt in self._make_retry_controller():
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\tenacity\__init__.py:443: in __iter__
+    do = self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\tenacity\__init__.py:376: in iter
+    result = action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\tenacity\__init__.py:418: in exc_check
+    raise retry_exc.reraise()
+          ^^^^^^^^^^^^^^^^^^^
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\tenacity\__init__.py:185: in reraise
+    raise self.last_attempt.result()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\concurrent\futures\_base.py:449: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\voyageai\client.py:81: in embed
+    response = voyageai.Embedding.create(
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\voyageai\api_resources\embedding.py:19: in create
+    response = super().create(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\voyageai\api_resources\api_resource.py:45: in create
+    response = requestor.request(
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\voyageai\api_resources\api_requestor.py:146: in request
+    resp = self._interpret_response(result)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\voyageai\api_resources\api_requestor.py:394: in _interpret_response
+    return self._interpret_response_line(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <voyageai.api_resources.api_requestor.APIRequestor object at 0x000001647EBF8180>
+rbody = '{"detail":"You have not yet added your payment method in the billing page and will have reduced rate limits of 3 RPM ...r several minutes. See our pricing docs (https://docs.voyageai.com/docs/pricing) for the free tokens for your model."}'
+rcode = 429
+rheaders = {'date': 'Wed, 10 Jun 2026 14:12:45 GMT', 'server': 'uvicorn', 'Content-Length': '601', 'content-type': 'application/j...: '03dd726d968db56cb29d5e22e56dfef7', 'Via': '1.1 google', 'Alt-Svc': 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'}
+
+    def _interpret_response_line(self, rbody: str, rcode: int, rheaders) -> VoyageHttpResponse:
+        # HTTP 204 response code does not have any content in the body.
+        if rcode == 204:
+            return VoyageHttpResponse(None, rheaders)
+    
+        if rcode == 500:
+            raise error.ServerError(
+                "The server failed to process the request.",
+                rbody,
+                rcode,
+                headers=rheaders,
+            )
+        elif rcode in [502, 503, 504]:
+            raise error.ServiceUnavailableError(
+                "The server is overloaded or not ready yet.",
+                rbody,
+                rcode,
+                headers=rheaders,
+            )
+        try:
+            if "text/plain" in rheaders.get("Content-Type", ""):
+                data = rbody
+            else:
+                data = json.loads(rbody)
+        except (JSONDecodeError, UnicodeDecodeError) as e:
+            raise error.APIError(
+                f"HTTP code {rcode} from API ({rbody})", rbody, rcode, headers=rheaders
+            ) from e
+    
+        resp = VoyageHttpResponse(data, rheaders)
+        if 400 <= rcode < 500:
+>           raise self.handle_error_response(rbody, rcode, resp.data, rheaders)
+E           voyageai.error.RateLimitError: You have not yet added your payment method in the billing page and will have reduced rate limits of 3 RPM and 10K TPM. To unlock our standard rate limits, please add a payment method in the billing page for the appropriate organization in the user dashboard (https://dashboard.voyageai.com/). Even with payment methods entered, the free tokens (200M tokens for Voyage series 3) will still apply. After adding a payment method, you should see your rate limits increase after several minutes. See our pricing docs (https://docs.voyageai.com/docs/pricing) for the free tokens for your model.
+
+C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\voyageai\api_resources\api_requestor.py:445: RateLimitError
+
+The above exception was the direct cause of the following exception:
+
+self = <tests.test_supabase.TestSupabaseIntegration testMethod=test_match_chunks_function>
+
+    async def test_match_chunks_function(self):
+        print("\\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501")
+        print("TEST: match_chunks SQL function")
+        print("\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501")
+    
+        query = "What are Pavan's skills?"
+>       embedding = await embed_query(query)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_supabase.py:47: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+text = "What are Pavan's skills?"
+
+    async def embed_query(text: str) -> list[float]:
+        """
+        Embed a user question for similarity search.
+        Uses input_type='query' for better retrieval.
+        """
+        try:
+            client = get_voyage_client()
+            if client is None:
+                return get_mock_embedding(settings.VOYAGE_EMBEDDING_DIM)
+    
+            result = client.embed(
+                texts=[text],
+                model=settings.VOYAGE_MODEL,
+                input_type="query"
+            )
+            embedding = result.embeddings[0]
+            logger.info(
+                f"Query embedded successfully. Dim: {len(embedding)}"
+            )
+            return embedding
+        except Exception as e:
+            logger.error(f"Embedding query failed: {e}")
+>           raise EmbeddingError(f"Voyage AI embedding failed: {e}") from e
+E           exceptions.errors.EmbeddingError: Voyage AI embedding failed: You have not yet added your payment method in the billing page and will have reduced rate limits of 3 RPM and 10K TPM. To unlock our standard rate limits, please add a payment method in the billing page for the appropriate organization in the user dashboard (https://dashboard.voyageai.com/). Even with payment methods entered, the free tokens (200M tokens for Voyage series 3) will still apply. After adding a payment method, you should see your rate limits increase after several minutes. See our pricing docs (https://docs.voyageai.com/docs/pricing) for the free tokens for your model.
+
+services\embeddings.py:49: EmbeddingError
+---------------------------- Captured stdout call -----------------------------
+\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nTEST: match_chunks SQL function\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n2026-06-10 19:42:44 | ERROR    | services.embeddings | Embedding query failed: You have not yet added your payment method in the billing page and will have reduced rate limits of 3 RPM and 10K TPM. To unlock our standard rate limits, please add a payment method in the billing page for the appropriate organization in the user dashboard (https://dashboard.voyageai.com/). Even with payment methods entered, the free tokens (200M tokens for Voyage series 3) will still apply. After adding a payment method, you should see your rate limits increase after several minutes. See our pricing docs (https://docs.voyageai.com/docs/pricing) for the free tokens for your model.
+------------------------------ Captured log call ------------------------------
+WARNING  asyncio:base_events.py:2056 Executing <Task finished name='Task-75' coro=<TestSupabaseIntegration.test_match_chunks_function() done, defined at C:\Users\mahip\OneDrive\Desktop\pk\portfolio\backend\tests\test_supabase.py:41> exception=EmbeddingError('Voyage AI embedding failed: You have not yet added your payment method in the billing page and will have reduced rate limits of 3 RPM and 10K TPM. To unlock our standard rate limits, please add a payment method in the billing page for the appropriate organization in the user dashboard (https://dashboard.voyageai.com/). Even with payment methods entered, the free tokens (200M tokens for Voyage series 3) will still apply. After adding a payment method, you should see your rate limits increase after several minutes. See our pricing docs (https://docs.voyageai.com/docs/pricing) for the free tokens for your model.') created at C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py:100> took 0.486 seconds
+============================== warnings summary ===============================
+services\llm.py:6
+  C:\Users\mahip\OneDrive\Desktop\pk\portfolio\backend\services\llm.py:6: FutureWarning: 
+  
+  All support for the `google.generativeai` package has ended. It will no longer be receiving 
+  updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+  See README for more details:
+  
+  https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+  
+    import google.generativeai as genai
+
+tests/test_ingestion.py::TestIngestion::test_all_chunks_present
+  C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\supabase\_sync\client.py:309: DeprecationWarning: The 'timeout' parameter is deprecated. Please configure it in the http client instead.
+    return SyncPostgrestClient(
+
+tests/test_ingestion.py::TestIngestion::test_all_chunks_present
+  C:\Users\mahip\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\supabase\_sync\client.py:309: DeprecationWarning: The 'verify' parameter is deprecated. Please configure it in the http client instead.
+    return SyncPostgrestClient(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_embeddings.py::TestEmbeddingsIntegration::test_query_doc_different
+FAILED tests/test_supabase.py::TestSupabaseIntegration::test_match_chunks_function
+============= 2 failed, 18 passed, 3 warnings in 83.41s (0:01:23) =============
