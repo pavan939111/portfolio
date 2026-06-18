@@ -187,7 +187,7 @@ export function FloatingAvatar() {
                 <div
                     style={{
                         position: "absolute",
-                        bottom: "195px",
+                        bottom: "150px",
                         left: "0",
                         background: "var(--bg-tertiary)",
                         border: "1px solid rgba(0, 212, 255, 0.2)",
@@ -350,7 +350,7 @@ export function FloatingAvatar() {
                     onClick={handleLearnMoreClick}
                     style={{
                         position: "absolute",
-                        bottom: "195px",
+                        bottom: "150px",
                         left: "0",
                         display: "flex",
                         alignItems: "center",
