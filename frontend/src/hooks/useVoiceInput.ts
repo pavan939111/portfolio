@@ -1,56 +1,33 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
+export interface VoiceCommand {
+  type: string;
+  section?: string;
+  action?: string;
+}
+
 export const useVoiceInput = (onCommand?: (intent: string, payload?: string) => void) => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
-  const recognitionRef = useRef<any>(null);
+  const [lastCommand, setLastCommand] = useState<VoiceCommand | null>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const SpeechRecognition =
-        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+  const socketRef = useRef<WebSocket | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
-      if (SpeechRecognition) {
-        const rec = new SpeechRecognition();
-        rec.continuous = false;
-        rec.interimResults = false;
-        rec.lang = 'en-US';
-
-        rec.onstart = () => {
-          setIsListening(true);
-          setTranscript('');
-        };
-
-        rec.onend = () => {
-          setIsListening(false);
-        };
-
-        rec.onresult = (event: any) => {
-          const resultText = event.results[0][0].transcript || '';
-          setTranscript(resultText);
-          parseCommand(resultText);
-        };
-
-        rec.onerror = (e: any) => {
-          console.warn('Speech recognition error:', e);
-          setIsListening(false);
-        };
-
-        recognitionRef.current = rec;
-      }
-    }
-  }, [onCommand]);
-
-  const parseCommand = (text: string) => {
+  const parseCommand = useCallback((text: string) => {
     const cleanText = text.toLowerCase().trim();
 
     if (cleanText.includes('stop') || cleanText.includes('cancel')) {
       if (onCommand) onCommand('stop');
+      setLastCommand({ type: 'action', action: 'stop' });
       return;
     }
 
     if (cleanText.includes('open chat') || cleanText.includes('show chat') || cleanText.includes('ask')) {
       if (onCommand) onCommand('open-chat');
+      setLastCommand({ type: 'action', action: 'openChat' });
       return;
     }
 
@@ -65,37 +42,151 @@ export const useVoiceInput = (onCommand?: (intent: string, payload?: string) => 
         cleanText.includes(sec)
       ) {
         if (onCommand) onCommand('navigate', sec);
+        setLastCommand({ type: 'navigate', section: sec });
         return;
       }
     }
-  };
+  }, [onCommand]);
 
-  const startListening = useCallback(() => {
-    if (recognitionRef.current && !isListening) {
-      try {
-        recognitionRef.current.start();
-      } catch (err) {
-        console.error('Failed to start speech recognition:', err);
-      }
+  const startListening = useCallback(async () => {
+    if (streamRef.current || socketRef.current || mediaRecorderRef.current) {
+      console.warn("Speech recording session is already active.");
+      return;
     }
-  }, [isListening]);
+    const apiKey = import.meta.env.VITE_DEEPGRAM_API_KEY;
+    if (!apiKey) {
+      console.error("VITE_DEEPGRAM_API_KEY is not defined in the environment.");
+      return;
+    }
+
+    try {
+      // 1. Get microphone audio stream
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      setStream(stream);
+
+      // 2. Establish connection to Deepgram live transcription WebSocket
+      const url = "wss://api.deepgram.com/v1/listen?model=nova-3&language=en-IN&interim_results=false&smart_format=true&endpointing=500";
+      const socket = new WebSocket(url, ["token", apiKey]);
+      socketRef.current = socket;
+
+      socket.onopen = () => {
+        console.log("Deepgram live transcription WebSocket opened.");
+        setIsListening(true);
+        setTranscript('');
+        setLastCommand(null);
+
+        // Start recording audio and send to socket
+        const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+        mediaRecorderRef.current = mediaRecorder;
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0 && socket.readyState === WebSocket.OPEN) {
+            socket.send(event.data);
+          }
+        };
+
+        // Slice audio and send chunks every 250ms
+        mediaRecorder.start(250);
+      };
+
+      socket.onmessage = (message) => {
+        try {
+          const data = JSON.parse(message.data);
+          const alternatives = data.channel?.alternatives || [];
+          const text = alternatives[0]?.transcript || "";
+          
+          if (text.trim()) {
+            setTranscript((prev) => {
+              const updated = prev ? `${prev} ${text}`.trim() : text;
+              parseCommand(updated);
+              return updated;
+            });
+          }
+        } catch (e) {
+          console.error("Error parsing Deepgram message:", e);
+        }
+      };
+
+      socket.onerror = (err) => {
+        console.error("Deepgram WebSocket error:", err);
+      };
+
+      socket.onclose = () => {
+        console.log("Deepgram live transcription WebSocket closed.");
+        setIsListening(false);
+        setStream(null);
+      };
+
+    } catch (err) {
+      console.error("Failed to start speech input:", err);
+      setIsListening(false);
+      setStream(null);
+    }
+  }, [parseCommand]);
 
   const stopListening = useCallback(() => {
-    if (recognitionRef.current && isListening) {
+    // Stop recording
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       try {
-        recognitionRef.current.stop();
+        mediaRecorderRef.current.stop();
       } catch (err) {
-        console.error('Failed to stop speech recognition:', err);
+        console.warn("Failed to stop media recorder:", err);
       }
     }
-  }, [isListening]);
+
+    // Stop mic stream tracks
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => {
+        try {
+          track.stop();
+        } catch (err) {
+          console.warn("Failed to stop track:", err);
+        }
+      });
+      streamRef.current = null;
+    }
+
+    // Close WebSocket
+    if (socketRef.current) {
+      if (socketRef.current.readyState === WebSocket.OPEN || socketRef.current.readyState === WebSocket.CONNECTING) {
+        try {
+          socketRef.current.close();
+        } catch (err) {
+          console.warn("Failed to close socket:", err);
+        }
+      }
+      socketRef.current = null;
+    }
+
+    setStream(null);
+    setIsListening(false);
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+      if (socketRef.current) {
+        socketRef.current.close();
+      }
+    };
+  }, []);
 
   return {
     isListening,
     transcript,
+    lastCommand,
+    stream,
     startListening,
     stopListening,
-    hasSupport: !!(typeof window !== 'undefined' && ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition))
+    isSupported: !!(typeof window !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
   };
 };
+
 export default useVoiceInput;

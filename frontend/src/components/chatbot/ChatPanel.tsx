@@ -26,12 +26,32 @@ export const ChatPanel: React.FC = () => {
 
   const bottomRef = useRef<HTMLDivElement>(null)
 
+  const handleMatchmakerSelect = (query: string, projectIds: string[]) => {
+    sendMessage(query)
+    
+    // Scroll and glow target project cards
+    projectIds.forEach((id, index) => {
+      setTimeout(() => {
+        const el = document.getElementById(`project-${id}`)
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" })
+          el.classList.add("project-glowing-highlight")
+          setTimeout(() => {
+            el.classList.remove("project-glowing-highlight")
+          }, 5500)
+        }
+      }, index * 1000)
+    })
+  }
+
   // Auto scroll to bottom on new messages
   useEffect(() => {
     bottomRef.current?.scrollIntoView({
       behavior: "smooth"
     })
   }, [messages, isLoading])
+
+  const lastMsgRef = useRef<string>("")
 
   // Sync vocal transcript to the input box while listening
   useEffect(() => {
@@ -56,18 +76,11 @@ export const ChatPanel: React.FC = () => {
       {/* ── DESKTOP & MOBILE FIXED PANEL ── */}
       <div
         style={{
-          position: "fixed",
-          top: 0,
-          right: 0,
-          width: "420px",
-          height: "100vh",
-          zIndex: 500,
+          width: "100%",
+          height: "100%",
           display: "flex",
           flexDirection: "column",
-          background: "var(--bg-secondary)",
-          borderLeft: "1px solid var(--border)",
-          transform: isChatOpen ? "translateX(0)" : "translateX(100%)",
-          transition: "transform 0.4s var(--easing)"
+          background: "var(--bg-secondary)"
         }}
         className="chat-panel"
       >
@@ -203,6 +216,38 @@ export const ChatPanel: React.FC = () => {
           }}
           className="scrollbar-thin"
         >
+          {/* Quick Actions Bar */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              paddingBottom: "10px",
+              borderBottom: "1px solid var(--border)",
+              marginBottom: "4px",
+              flexWrap: "wrap"
+            }}
+          >
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--text-muted)", letterSpacing: "1px" }}>QUICK LINKS:</span>
+            <button
+              onClick={() => sendMessage("Give me Pavan's AI & Agentic RAG matchmaker profile summary.")}
+              style={{
+                background: "rgba(0, 243, 255, 0.06)",
+                border: "1px solid rgba(0, 243, 255, 0.2)",
+                borderRadius: "12px",
+                color: "var(--accent-primary)",
+                fontFamily: "var(--font-mono)",
+                fontSize: "10px",
+                padding: "4px 10px",
+                cursor: "pointer",
+                transition: "all 0.2s ease"
+              }}
+              className="hover:bg-[rgba(0, 243, 255, 0.15)]"
+            >
+              💼 Matchmaker Quiz
+            </button>
+          </div>
+
           {/* Welcome + suggestions */}
           {messages.length === 1 && (
             <div>
@@ -222,6 +267,64 @@ export const ChatPanel: React.FC = () => {
                 }}
               >
                 Hi! I'm Pavan's AI assistant powered by Claude. Ask me anything about his skills, projects, or experience! 👋
+              </div>
+
+              {/* Recruiter Matchmaker Section */}
+              <div
+                style={{
+                  background: "rgba(0, 243, 255, 0.03)",
+                  border: "1px dashed rgba(0, 243, 255, 0.2)",
+                  borderRadius: "12px",
+                  padding: "14px",
+                  marginBottom: "20px"
+                }}
+              >
+                <p
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "10px",
+                    color: "var(--accent-primary)",
+                    letterSpacing: "1.5px",
+                    fontWeight: "bold",
+                    textTransform: "uppercase",
+                    marginBottom: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px"
+                  }}
+                >
+                  💼 Recruiter Matchmaker
+                </p>
+                <p style={{ fontFamily: "var(--font-body)", fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px", lineHeight: "1.5" }}>
+                  Select an alignment track. The chatbot will deliver a custom summary and automatically highlight Pavan's matching projects:
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {[
+                    { label: "🤖 AI & Agentic RAG Track", query: "Give me Pavan's AI & Agentic RAG matchmaker profile summary.", projects: ["failurerag", "livestock"] },
+                    { label: "💻 Full Stack & Voice SDK Track", query: "Give me Pavan's Full Stack & Voice SDK matchmaker profile summary.", projects: ["nina"] },
+                    { label: "📊 Multi-Agent GST Compliance Track", query: "Give me Pavan's Multi-Agent GST Compliance matchmaker profile summary.", projects: ["taxsetu", "visionsync"] }
+                  ].map(track => (
+                    <button
+                      key={track.label}
+                      onClick={() => handleMatchmakerSelect(track.query, track.projects)}
+                      style={{
+                        padding: "8px 12px",
+                        background: "rgba(255,255,255,0.02)",
+                        border: "1px solid var(--border)",
+                        borderRadius: "8px",
+                        color: "var(--text-primary)",
+                        fontFamily: "var(--font-body)",
+                        fontSize: "12px",
+                        textAlign: "left",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease"
+                      }}
+                      className="hover:bg-[rgba(0,212,255,0.06)] hover:border-[rgba(0,212,255,0.25)] hover:text-[var(--text-primary)]"
+                    >
+                      {track.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Suggested questions */}
@@ -263,7 +366,7 @@ export const ChatPanel: React.FC = () => {
                     cursor: "pointer",
                     transition: "all 0.2s ease"
                   }}
-                  className="hover:bg-[rgba(255,122,0,0.08)] hover:border-[rgba(255,122,0,0.3)] hover:text-[var(--text-primary)] hover:pl-[18px]"
+                  className="hover:bg-[rgba(0,212,255,0.06)] hover:border-[rgba(0,212,255,0.25)] hover:text-[var(--text-primary)] hover:pl-[18px]"
                 >
                   {q}
                 </button>
@@ -369,7 +472,7 @@ export const ChatPanel: React.FC = () => {
               outline: "none",
               transition: "all 0.2s ease"
             }}
-            className="focus:border-[var(--accent-primary)] focus:shadow-[0_0_0_3px_rgba(255,122,0,0.08)]"
+            className="focus:border-[var(--accent-primary)] focus:shadow-[0_0_0_3px_rgba(0,212,255,0.08)]"
           />
 
           {/* Mic button */}
@@ -406,7 +509,7 @@ export const ChatPanel: React.FC = () => {
               height: "42px",
               borderRadius: "12px",
               flexShrink: 0,
-              background: isLoading || !inputValue.trim() ? "rgba(255,122,0,0.3)" : "var(--accent-primary)",
+              background: isLoading || !inputValue.trim() ? "rgba(0, 212, 255, 0.3)" : "var(--accent-primary)",
               border: "none",
               color: "black",
               display: "flex",
@@ -415,7 +518,7 @@ export const ChatPanel: React.FC = () => {
               cursor: isLoading || !inputValue.trim() ? "not-allowed" : "pointer",
               transition: "all 0.2s ease"
             }}
-            className="enabled:hover:scale-[1.05] enabled:hover:shadow-[0_4px_12px_rgba(255,122,0,0.4)]"
+            className="enabled:hover:scale-[1.05] enabled:hover:shadow-[0_4px_16px_rgba(0,212,255,0.4)]"
           >
             <Send size={16} />
           </button>

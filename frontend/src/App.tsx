@@ -1,15 +1,13 @@
+import React, { useState } from "react"
 import { useChat } from "./context/ChatContext"
-import { useVoice } from "./context/VoiceContext"
-import { useAutoTour } from "./hooks/useAutoTour"
-import { useSectionObserver } from "./hooks/useSectionObserver"
 import { useScrollReveal } from "./hooks/useScrollReveal"
-import { useHoverSpeak } from "./hooks/useHoverSpeak"
-import { voiceScripts } from "./data/voiceScripts"
 
-import { DotGrid } from "./components/ui/DotGrid"
+// Core Layout & UI Components
+import { NeuralBackground } from "./components/ui/NeuralBackground"
+import { CustomCursor } from "./components/ui/CustomCursor"
+import { HUDDisplay } from "./components/ui/HUDDisplay"
 import { GrainOverlay } from "./components/ui/GrainOverlay"
 import { ScrollProgress } from "./components/layout/ScrollProgress"
-import { CustomCursor } from "./components/ui/CustomCursor"
 
 // Section Components
 import { LandingPage } from "./components/sections/LandingPage"
@@ -25,39 +23,59 @@ import { Contact } from "./components/sections/Contact"
 import { FloatingAvatar } from "./components/avatar/FloatingAvatar"
 import { ChatButton } from "./components/chatbot/ChatButton"
 import { ChatPanel } from "./components/chatbot/ChatPanel"
+import { TelemetryDashboard } from "./components/ui/TelemetryDashboard"
+import { useVoice } from "./context/VoiceContext"
 
 export default function App() {
-  // Initialize scroll animations
+  // Initialize scroll reveal animations
   useScrollReveal()
 
-  // Initialize hover/tap audio narration system
-  useHoverSpeak()
-
   const { isChatOpen } = useChat()
-  const { speak, stop } = useVoice()
+  const { unblockAudio } = useVoice()
+  const [isTelemetryOpen, setIsTelemetryOpen] = useState(false)
+  const [isEntered, setIsEntered] = useState(true)
 
-  // Initialize auto-tour manager
-  const tour = useAutoTour({ speak, stop })
-  const { isTourActive } = tour
-
-  // Set up section visibility observer (solely for active section highlight in UI)
-  const { activeSection } = useSectionObserver({
-    isTourActive
-  })
+  // Automatically register first-user-gesture event listeners to unblock audio seamlessly
+  React.useEffect(() => {
+    const handleUserGesture = () => {
+      unblockAudio()
+      window.removeEventListener("click", handleUserGesture)
+      window.removeEventListener("scroll", handleUserGesture, { capture: true })
+      window.removeEventListener("keydown", handleUserGesture)
+      window.removeEventListener("touchstart", handleUserGesture)
+    }
+    window.addEventListener("click", handleUserGesture)
+    // Use capture: true for scroll so we capture it immediately
+    window.addEventListener("scroll", handleUserGesture, { passive: true, capture: true })
+    window.addEventListener("keydown", handleUserGesture)
+    window.addEventListener("touchstart", handleUserGesture)
+    return () => {
+      window.removeEventListener("click", handleUserGesture)
+      window.removeEventListener("scroll", handleUserGesture, { capture: true })
+      window.removeEventListener("keydown", handleUserGesture)
+      window.removeEventListener("touchstart", handleUserGesture)
+    }
+  }, [unblockAudio])
 
   return (
     <>
-      {/* Background layers & custom overlays */}
-      <DotGrid />
+      {/* Background & HUD Layer */}
+      <NeuralBackground />
+      <CustomCursor />
+      <HUDDisplay />
       <GrainOverlay />
       <ScrollProgress />
-      <CustomCursor />
 
-      {/* Main viewport container */}
-      <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] relative">
+      <div 
+        className="min-h-screen bg-transparent text-[var(--text-primary)] relative"
+        style={{
+          opacity: isEntered ? 1 : 0,
+          pointerEvents: isEntered ? "all" : "none",
+          transition: "opacity 1s ease 0.3s",
+        }}
+      >
         
         {/* ── MAIN CONTENT ── */}
-        {/* This div shrinks dynamically when the panel opens on desktop */}
         <div
           className={`main-content ${
             isChatOpen ? "chat-open" : "chat-closed"
@@ -67,37 +85,53 @@ export default function App() {
           <LandingPage />
 
           {/* Portfolio Sections */}
-          <section id="about">
-            <About />
-          </section>
-          
-          <section id="skills">
-            <Skills />
-          </section>
+          <About />
+          <Skills />
+          <Projects />
+          <Experience />
+          <Education />
+          <Achievements />
+          <Contact />
 
-          <section id="projects">
-            <Projects />
-          </section>
-
-          <section id="experience">
-            <Experience />
-          </section>
-
-          <section id="education">
-            <Education />
-          </section>
-
-          <section id="achievements">
-            <Achievements />
-          </section>
-
-          <section id="contact">
-            <Contact />
-          </section>
+          {/* Footer with Telemetry Toggle */}
+          <footer
+            style={{
+              padding: "40px 20px 60px 20px",
+              borderTop: "1px solid var(--border)",
+              textAlign: "center",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "10px",
+              marginTop: "40px"
+            }}
+          >
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--text-muted)", margin: 0 }}>
+              © {new Date().getFullYear()} Pavan Kumar Kunukuntla. All rights reserved.
+            </p>
+            <button
+              onClick={() => setIsTelemetryOpen(true)}
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "11px",
+                color: "var(--accent-primary)",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                textDecoration: "underline",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                padding: "4px 8px"
+              }}
+            >
+              ⚙️ System Telemetry
+            </button>
+          </footer>
         </div>
 
         {/* ── CHAT PANEL ── */}
-        {/* Slides in from the right, taking up 420px of space on desktop */}
         <div
           className={`chat-panel-wrapper ${
             isChatOpen ? "chat-panel-open" : ""
@@ -107,12 +141,17 @@ export default function App() {
         </div>
 
         {/* ── FLOATING CONTROLS ── */}
-        {/* Fixed Voice Assistant Control (Bottom-Left) */}
-        <FloatingAvatar activeSection={activeSection} tour={tour} />
+        {isEntered && (
+          <>
+            <FloatingAvatar />
+            <ChatButton />
+          </>
+        )}
 
-        {/* Floating Conversational AI Panel Toggle (Bottom-Right) */}
-        <ChatButton />
+        {/* ── TELEMETRY DASHBOARD OVERLAY ── */}
+        <TelemetryDashboard isOpen={isTelemetryOpen} onClose={() => setIsTelemetryOpen(false)} />
       </div>
     </>
   )
 }
+

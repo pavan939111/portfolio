@@ -2,6 +2,7 @@ import asyncio
 import sys
 import os
 import unittest
+from unittest.mock import patch, MagicMock
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -15,11 +16,20 @@ from services.embeddings import (
 )
 from config.settings import get_settings
 
+class MockEmbeddingsResult:
+    def __init__(self, embeddings):
+        self.embeddings = embeddings
+
 class TestEmbeddingsIntegration(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.settings = get_settings()
 
-    async def test_embed_query(self):
+    @patch("services.embeddings.get_voyage_client")
+    async def test_embed_query(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.embed.return_value = MockEmbeddingsResult([[0.1] * self.settings.VOYAGE_EMBEDDING_DIM])
+        mock_get_client.return_value = mock_client
+
         text = "What skills does Pavan have?"
         embedding = await embed_query(text)
 
@@ -35,12 +45,27 @@ class TestEmbeddingsIntegration(unittest.IsolatedAsyncioTestCase):
         # Check 4: Not all zeros
         self.assertTrue(any(v != 0.0 for v in embedding), "Embedding is all zeros")
 
-    async def test_embed_document(self):
+    @patch("services.embeddings.get_voyage_client")
+    async def test_embed_document(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.embed.return_value = MockEmbeddingsResult([[0.2] * self.settings.VOYAGE_EMBEDDING_DIM])
+        mock_get_client.return_value = mock_client
+
         text = "Pavan is an AI Engineer specializing in RAG"
         embedding = await embed_document(text)
         self.assertEqual(len(embedding), self.settings.VOYAGE_EMBEDDING_DIM, f"Wrong dim: {len(embedding)}")
 
-    async def test_embed_batch(self):
+    @patch("services.embeddings.get_voyage_client")
+    async def test_embed_batch(self, mock_get_client):
+        mock_client = MagicMock()
+        dim = self.settings.VOYAGE_EMBEDDING_DIM
+        mock_client.embed.return_value = MockEmbeddingsResult([
+            [0.1] * dim,
+            [0.2] * dim,
+            [0.3] * dim
+        ])
+        mock_get_client.return_value = mock_client
+
         texts = [
             "LangChain and LangGraph expertise",
             "FastAPI backend development",
@@ -52,7 +77,16 @@ class TestEmbeddingsIntegration(unittest.IsolatedAsyncioTestCase):
         for i, emb in enumerate(embeddings):
             self.assertEqual(len(emb), self.settings.VOYAGE_EMBEDDING_DIM, f"Chunk {i} wrong dim: {len(emb)}")
 
-    async def test_query_doc_different(self):
+    @patch("services.embeddings.get_voyage_client")
+    async def test_query_doc_different(self, mock_get_client):
+        mock_client = MagicMock()
+        dim = self.settings.VOYAGE_EMBEDDING_DIM
+        mock_client.embed.side_effect = [
+            MockEmbeddingsResult([[0.1] * dim]),
+            MockEmbeddingsResult([[0.2] * dim])
+        ]
+        mock_get_client.return_value = mock_client
+
         same_text = "Pavan Kumar AI Engineer"
         q_emb = await embed_query(same_text)
         d_emb = await embed_document(same_text)

@@ -26,8 +26,7 @@ async def condense_query(message: str, history: list[Message]) -> str:
         
     try:
         prompt = build_condense_prompt(message, history)
-        # Invoke LLM to rewrite the query (passing empty chunks to get plain response)
-        rewritten = await get_llm_response(prompt, [], [])
+        rewritten = await get_raw_llm_response(prompt)
         cleaned_rewritten = rewritten.strip(' "\'\n\r')
         logger.info(f"Query condensation: '{message}' -> '{cleaned_rewritten}'")
         return cleaned_rewritten

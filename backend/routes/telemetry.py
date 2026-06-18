@@ -39,6 +39,7 @@ MOCK_LOGS = [
     {
         "id": "mock-log-1",
         "user_query": "What are Pavan's core skills?",
+        "final_response": "Pavan's core skills include Machine Learning, AI Engineering, Full-Stack development with Python, and designing high-performance RAG systems.",
         "latency_ms": 780,
         "tokens_used": 1800,
         "cost_usd": 0.00054,
@@ -48,6 +49,7 @@ MOCK_LOGS = [
     {
         "id": "mock-log-2",
         "user_query": "Tell me about VisionSync",
+        "final_response": "VisionSync is Pavan's pre-production agent platform for movies, which uses Gemini Vision and Stable Diffusion SDXL.",
         "latency_ms": 1120,
         "tokens_used": 2400,
         "cost_usd": 0.00072,
@@ -57,6 +59,7 @@ MOCK_LOGS = [
     {
         "id": "mock-log-3",
         "user_query": "How can I contact Pavan?",
+        "final_response": "You can contact Pavan via email at pavankumarkunukuntla@gmail.com, or submit a message through the contact page.",
         "latency_ms": 450,
         "tokens_used": 600,
         "cost_usd": 0.00018,
@@ -99,6 +102,7 @@ async def get_telemetry():
                     recent_logs.append({
                         "id": str(r.get("id")),
                         "user_query": r.get("user_query", ""),
+                        "final_response": r.get("final_response", ""),
                         "latency_ms": r.get("latency_ms", 0),
                         "tokens_used": r.get("tokens_used", 0),
                         "cost_usd": float(r.get("cost_usd", 0)),

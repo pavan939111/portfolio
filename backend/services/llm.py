@@ -1,9 +1,9 @@
-import os
 from config.settings import get_settings
 from models.entities import Message, RetrievedChunk
 from prompts.builder import build_system_prompt
 from groq import Groq
-import google.generativeai as genai
+from google import genai as google_genai
+from google.genai import types as genai_types
 from fastapi.concurrency import run_in_threadpool
 from logger.setup import setup_logger
 from exceptions.errors import LLMError
@@ -13,19 +13,23 @@ settings = get_settings()
 
 def call_gemini(system_prompt: str, messages: list[dict]) -> str:
     logger.info("Calling Gemini AI...")
-    genai.configure(api_key=settings.GEMINI_API_KEY)
-    model = genai.GenerativeModel(
-        model_name=settings.GEMINI_MODEL,
-        system_instruction=system_prompt
-    )
-    # Convert conversation history format to Gemini format (role: user/model)
-    gemini_history = []
-    for msg in messages[:-1]:
+    client = google_genai.Client(api_key=settings.GEMINI_API_KEY)
+
+    contents: list[genai_types.Content] = []
+    for msg in messages:
         role = "user" if msg["role"] == "user" else "model"
-        gemini_history.append({"role": role, "parts": [msg["content"]]})
-        
-    chat = model.start_chat(history=gemini_history)
-    response = chat.send_message(messages[-1]["content"])
+        contents.append(
+            genai_types.Content(role=role, parts=[genai_types.Part(text=msg["content"])])
+        )
+
+    response = client.models.generate_content(
+        model=settings.GEMINI_MODEL,
+        contents=contents,
+        config=genai_types.GenerateContentConfig(
+            system_instruction=system_prompt,
+            temperature=0.2
+        )
+    )
     return response.text
 
 def call_groq(system_prompt: str, messages: list[dict]) -> str:
@@ -37,7 +41,7 @@ def call_groq(system_prompt: str, messages: list[dict]) -> str:
         model=settings.GROQ_MODEL,
         messages=groq_messages,
         max_tokens=1024,
-        temperature=0.7,
+        temperature=0.2,
     )
     return response.choices[0].message.content
 

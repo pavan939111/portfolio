@@ -1,38 +1,4 @@
--- Enable the pgvector extension to work with embeddings
-create extension if not exists vector;
-
--- 1. Create Portfolio Items Table
-create table if not exists public.portfolio_items (
-  id uuid primary key default gen_random_uuid(),
-  category text not null check (category in ('project', 'experience', 'skill', 'about')),
-  title text not null,
-  description text not null,
-  metadata jsonb default '{}'::jsonb,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
-);
-
--- Enable RLS (Row Level Security) - Read-only for anonymous users, admin can edit
-alter table public.portfolio_items enable row level security;
-
-create policy "Allow public read access to portfolio items" 
-  on public.portfolio_items for select using (true);
-
--- 2. Create Portfolio Embeddings Table
-create table if not exists public.portfolio_embeddings (
-  id uuid primary key default gen_random_uuid(),
-  item_id uuid references public.portfolio_items(id) on delete cascade not null,
-  content text not null,
-  embedding vector(1024) not null, -- 1024 dimensions for Voyage-3 embeddings
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
-);
-
--- Enable RLS
-alter table public.portfolio_embeddings enable row level security;
-
-create policy "Allow public read access to portfolio embeddings" 
-  on public.portfolio_embeddings for select using (true);
-
--- 3. Create Agent Runs / Telemetry Table
+-- 1. Create Agent Runs / Telemetry Table
 create table if not exists public.agent_runs (
   id uuid primary key default gen_random_uuid(),
   session_id text not null,
@@ -55,39 +21,20 @@ create policy "Allow public read access to agent runs"
 create policy "Allow public insert access to agent runs" 
   on public.agent_runs for insert with check (true);
 
--- 4. Create Vector Similarity Match Function
-create or replace function public.match_embeddings (
-  query_embedding vector(1024),
-  match_threshold float,
-  match_count int
-)
-returns table (
-  id uuid,
-  item_id uuid,
-  content text,
-  similarity float,
-  category text,
-  title text,
-  description text,
-  metadata jsonb
-)
-language plpgsql stable
-as $$
-begin
-  return query
-  select
-    pe.id,
-    pe.item_id,
-    pe.content,
-    1 - (pe.embedding <=> query_embedding) as similarity,
-    pi.category,
-    pi.title,
-    pi.description,
-    pi.metadata
-  from public.portfolio_embeddings pe
-  join public.portfolio_items pi on pe.item_id = pi.id
-  where 1 - (pe.embedding <=> query_embedding) > match_threshold
-  order by pe.embedding <=> query_embedding
-  limit match_count;
-end;
-$$;
+-- 2. Create Contact Messages Table
+create table if not exists public.contact_messages (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  email text not null,
+  subject text not null,
+  message text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable RLS
+alter table public.contact_messages enable row level security;
+
+-- Allow public insert access so visitors can submit contact forms
+create policy "Allow public insert access to contact_messages" 
+  on public.contact_messages for insert with check (true);
+

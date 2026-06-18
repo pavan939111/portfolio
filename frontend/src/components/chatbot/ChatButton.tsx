@@ -7,19 +7,7 @@ export function ChatButton() {
   const [showTooltip, setShowTooltip] = useState(false)
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        bottom: "28px",
-        right: isChatOpen ? "calc(var(--chat-panel-width) + 16px)" : "28px",
-        zIndex: 600,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-end",
-        gap: "8px",
-        transition: "right 0.4s cubic-bezier(0.76, 0, 0.24, 1)"
-      }}
-    >
+    <div className={`chat-button-container ${isChatOpen ? "chat-open" : ""}`}>
       {/* Tooltip — shows on hover when closed */}
       {showTooltip && !isChatOpen && (
         <div

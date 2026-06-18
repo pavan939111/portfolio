@@ -43,8 +43,10 @@ def build_system_prompt(
         
     if is_unlisted_topic and unlisted_topic_alternative:
         extra_rules.append(
-            f"STRICT PIVOT CONSTRAINT: The user is asking about a project/skill/experience that Pavan has NOT done. "
-            f"State clearly that Pavan has not done/built that, and pivot to: {unlisted_topic_alternative}."
+            f"STRICT PIVOT CONSTRAINT: The user is asking about a project, skill, or experience that Pavan has not explicitly listed. "
+            f"Instead of focusing on what he has not done, frame the response positively by highlighting that he has built "
+            f"similar projects or worked on related topics in his knowledge base. Showcase those similar accomplishments: "
+            f"{unlisted_topic_alternative}. Explain these relevant details clearly based on the context."
         )
         
     if extra_rules:

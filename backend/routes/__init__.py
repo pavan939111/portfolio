@@ -4,6 +4,7 @@ from routes.health import router as health_router
 from routes.embed import router as embed_router
 from routes.projects import router as projects_router
 from routes.telemetry import router as telemetry_router
+from routes.stt import router as stt_router
 
 api_router = APIRouter()
 
@@ -13,5 +14,6 @@ api_router.include_router(health_router)
 api_router.include_router(embed_router)
 api_router.include_router(projects_router)
 api_router.include_router(telemetry_router)
+api_router.include_router(stt_router)
 
 __all__ = ["api_router"]

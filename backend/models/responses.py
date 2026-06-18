@@ -29,3 +29,5 @@ class HealthResponse(BaseModel):
     timestamp: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
+
+

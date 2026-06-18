@@ -2,14 +2,15 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import SlowAPIMiddleware
-from slowapi import _rate_limit_exceeded_handler
 
 from config.settings import get_settings
 from logger.setup import setup_logger
 from middleware import limiter, RequestResponseLoggingMiddleware, register_error_handlers
+from middleware.rate_limit import init_rate_limiting
 from routes import api_router
+from routes.audio import router as audio_router, pre_cache_predefined_clips
+from routes.contact import router as contact_router
+import asyncio
 
 logger = setup_logger(__name__)
 settings = get_settings()
@@ -25,7 +26,12 @@ async def lifespan(app: FastAPI):
     logger.info(f"Voyage model: {settings.VOYAGE_MODEL}")
     logger.info(f"Supabase URL: {settings.SUPABASE_URL[:30]}...")
     logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+    # Run background pre-caching of voice scripts on start
+    asyncio.create_task(pre_cache_predefined_clips())
+
     yield
+
     # App shutdown event
     logger.info("Pavan Portfolio API shutting down.")
 
@@ -45,9 +51,7 @@ app = FastAPI(
 register_error_handlers(app)
 
 # 2. Rate limiting setup
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-app.add_middleware(SlowAPIMiddleware)
+init_rate_limiting(app)
 
 # 3. Request Logging middleware
 app.add_middleware(RequestResponseLoggingMiddleware)
@@ -72,6 +76,17 @@ app.add_middleware(
 
 # 5. Register routes
 app.include_router(api_router, prefix="/api")
+app.include_router(
+    audio_router,
+    prefix="/api",
+    tags=["Audio"]
+)
+app.include_router(
+    contact_router,
+    prefix="/api",
+    tags=["Contact"]
+)
+
 
 if __name__ == "__main__":
     import uvicorn
@@ -82,3 +97,6 @@ if __name__ == "__main__":
         reload=settings.ENVIRONMENT == "development",
         log_level="info"
     )
+
+# Reloader touch
+

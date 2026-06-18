@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, EmailStr
 from typing import List, Optional
+from datetime import datetime, timezone
 from models.entities import Message
 
 class ChatRequest(BaseModel):
@@ -49,3 +50,16 @@ class EmbedRequest(BaseModel):
         default="query",
         description="Either 'query' or 'document'"
     )
+
+class ContactRequest(BaseModel):
+    name: str = Field(..., min_length=2, max_length=100, description="Visitor's name")
+    email: EmailStr = Field(..., description="Visitor's email")
+    subject: str = Field(..., min_length=2, max_length=200, description="Message subject")
+    message: str = Field(..., min_length=10, max_length=2000, description="Message text content")
+
+class ContactResponse(BaseModel):
+    success: bool
+    message: str
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+

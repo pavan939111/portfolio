@@ -16,4 +16,4 @@ class RetrievedChunk(BaseModel):
     title: str
     content: str
     similarity: float
-    source: str = "Supabase DB"
+    source: str = "Local Knowledge"

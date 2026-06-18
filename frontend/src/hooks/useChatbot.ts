@@ -4,23 +4,41 @@ import type { ChatMessage } from "../types"
 import type { Message } from "../services/api"
 
 export function useChatbot() {
-  const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [inputValue, setInputValue] = useState("")
-  const [isOpen, setIsOpen] = useState(false)
-
-  // Initialize welcome message
-  useEffect(() => {
-    setMessages([
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("pavan_chatbot_history")
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached)
+          return parsed.map((m: any) => ({
+            ...m,
+            timestamp: new Date(m.timestamp)
+          }))
+        } catch (e) {
+          console.error("Failed to parse cached chat history:", e)
+        }
+      }
+    }
+    return [
       {
         id: "welcome",
         role: "assistant",
         content: "Hi! I'm Pavan's AI assistant. Ask me anything about his skills, projects, or experience! 👋",
         timestamp: new Date()
       }
-    ])
-  }, [])
+    ]
+  })
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [inputValue, setInputValue] = useState("")
+  const [isOpen, setIsOpen] = useState(false)
+
+  // Sync messages to localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined" && messages.length > 0) {
+      localStorage.setItem("pavan_chatbot_history", JSON.stringify(messages))
+    }
+  }, [messages])
 
   const sendMessage = useCallback(async (textToSubmit?: string) => {
     const query = (textToSubmit || inputValue).trim()
@@ -67,14 +85,18 @@ export function useChatbot() {
   }, [inputValue, messages])
 
   const clearChat = useCallback(() => {
-    setMessages([
+    const welcome = [
       {
         id: "welcome",
         role: "assistant",
         content: "Hi! I'm Pavan's AI assistant. Ask me anything about his skills, projects, or experience! 👋",
         timestamp: new Date()
       }
-    ])
+    ]
+    setMessages(welcome)
+    if (typeof window !== "undefined") {
+      localStorage.setItem("pavan_chatbot_history", JSON.stringify(welcome))
+    }
     setError(null)
     setInputValue("")
   }, [])

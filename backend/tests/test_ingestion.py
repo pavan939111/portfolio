@@ -1,12 +1,9 @@
 import sys
 import os
 import unittest
+import json
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from dotenv import load_dotenv
-load_dotenv()
-
-from services.retrieval import get_supabase_client
 
 EXPECTED_CHUNKS = {
     "about":        2,
@@ -22,21 +19,22 @@ EXPECTED_CHUNKS = {
 class TestIngestion(unittest.TestCase):
     def test_all_chunks_present(self):
         print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        print("TEST: All knowledge chunks in Supabase")
+        print("TEST: All knowledge chunks in Local Index")
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
-        client = get_supabase_client()
-        self.assertIsNotNone(client, "Supabase client is not initialized")
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        embeddings_path = os.path.join(current_dir, "..", "data", "knowledgeBaseEmbeddings.json")
         
+        self.assertTrue(os.path.exists(embeddings_path), "Local embeddings JSON file is missing")
+        
+        with open(embeddings_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
         all_pass = True
 
         for section, expected_count in EXPECTED_CHUNKS.items():
-            result = client.table("portfolio_chunks") \
-                .select("id, title") \
-                .eq("section", section) \
-                .execute()
-
-            actual_count = len(result.data)
+            section_chunks = [c for c in data if c.get("section") == section]
+            actual_count = len(section_chunks)
 
             if actual_count >= expected_count:
                 print(f"  ✅ {section:<15} {actual_count}/{expected_count} chunks")
@@ -45,13 +43,11 @@ class TestIngestion(unittest.TestCase):
                 all_pass = False
 
         total_expected = sum(EXPECTED_CHUNKS.values())
-        result_all = client.table("portfolio_chunks") \
-            .select("id", count="exact") \
-            .execute()
-        total_actual = result_all.count
+        total_actual = len(data)
 
         print(f"\n  Total chunks: {total_actual}/{total_expected}")
         self.assertTrue(all_pass, "Some categories are missing required chunks")
 
 if __name__ == "__main__":
     unittest.main()
+

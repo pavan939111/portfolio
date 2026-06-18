@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch, AsyncMock, MagicMock
 from fastapi.testclient import TestClient
 import sys
 import os
@@ -61,3 +61,31 @@ class TestRoutes(unittest.TestCase):
         self.assertTrue("weeklyAnalytics" in data)
         self.assertTrue("recentLogs" in data)
         self.assertTrue("toolUsage" in data)
+
+    def test_audio_list_route(self):
+        res = self.client.get("/api/audio")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertTrue("available" in data)
+        self.assertTrue("total" in data)
+        self.assertTrue("expected" in data)
+
+    @patch("routes.contact.send_contact_notification", new_callable=AsyncMock)
+    def test_contact_route_success(self, mock_send_notification):
+        mock_send_notification.return_value = None
+
+        body = {
+            "name": "Jane Doe",
+            "email": "jane@example.com",
+            "subject": "Inquiry",
+            "message": "Hello Pavan"
+        }
+        res = self.client.post("/api/contact", json=body)
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertEqual(data["success"], True)
+        self.assertTrue("message" in data)
+        self.assertTrue("timestamp" in data)
+
+
+

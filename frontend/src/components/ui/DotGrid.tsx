@@ -1,3 +1,1 @@
-export function DotGrid() {
-  return <div className="dot-grid" />
-}
+// Obsolete DotGrid background removed in favor of NeuralBackground.

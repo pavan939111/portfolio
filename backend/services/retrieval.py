@@ -209,64 +209,24 @@ async def retrieve_chunks(
     query_text: str = ""
 ) -> list[RetrievedChunk]:
     """
-    Search local hybrid retrieval database first (pre-computed embeddings & keyword matching),
-    falling back to Supabase pgvector search or local fallback on failure.
+    Search local hybrid retrieval database (pre-computed embeddings & keyword matching),
+    falling back to local keyword fallback search on failure.
     """
     threshold = match_threshold or settings.MATCH_THRESHOLD
     count = match_count or settings.MATCH_COUNT
 
-    # 1. Primary: Local Hybrid Search (Extremely fast, bypasses DB network latency)
+    # Primary: Local Hybrid Search (Extremely fast, bypasses DB network latency)
     logger.info("Executing local hybrid search...")
     local_results = local_hybrid_search(query_embedding, query_text, count)
     if local_results:
         # Filter by threshold if needed
-        return [c for c in local_results if c.similarity >= threshold] or local_results[:1]
+        results = [c for c in local_results if c.similarity >= threshold]
+        if results:
+            return results
 
-    # 2. Fallback to Supabase pgvector if local search is empty or failed
-    client = get_supabase_client()
-    if client is None:
-        return local_fallback_search(query_text, count)
+    # Fallback directly to local keyword search
+    return local_fallback_search(query_text, count)
 
-    try:
-        logger.info("Local hybrid search returned no results. Querying Supabase match_chunks rpc...")
-        result = client.rpc(
-            "match_chunks",
-            {
-                "query_embedding": query_embedding,
-                "match_threshold": threshold,
-                "match_count": count
-            }
-        ).execute()
-
-        if not result.data:
-            result = client.rpc(
-                "match_chunks",
-                {
-                    "query_embedding": query_embedding,
-                    "match_threshold": 0.3,
-                    "match_count": count
-                }
-            ).execute()
-
-        if not result.data:
-            return local_fallback_search(query_text, count)
-
-        chunks = [
-            RetrievedChunk(
-                id=row["id"],
-                section=row["section"],
-                title=row["title"],
-                content=row["content"],
-                similarity=round(float(row["similarity"]), 4),
-                source="Supabase DB"
-            )
-            for row in (result.data or [])
-        ]
-        return chunks
-
-    except Exception as e:
-        logger.error(f"Remote retrieval failed: {e}. Falling back to keyword fallback search.")
-        return local_fallback_search(query_text, count)
 
 
 async def upsert_chunk(

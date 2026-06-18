@@ -97,8 +97,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, isLatest }) =
                   key={i}
                   className="px-2 py-0.5 rounded font-mono text-[9px] uppercase tracking-wider"
                   style={{
-                    background: "rgba(255, 122, 0, 0.08)",
-                    border: "1px solid rgba(255, 122, 0, 0.2)",
+                    background: "rgba(0, 243, 255, 0.08)",
+                    border: "1px solid rgba(0, 243, 255, 0.2)",
                     color: "var(--accent-primary)"
                   }}
                 >

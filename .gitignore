@@ -21,3 +21,8 @@ dist/
 .eslintcache
 .vite/
 .DS_Store
+
+# Local Caches & Run Logs
+backend/audio_cache/
+backend/backend_start.log
+

@@ -1,23 +1,30 @@
 import React, { createContext, useContext, ReactNode, useEffect } from "react"
-import { useSpeech } from "../hooks/useSpeech"
-import { useVoiceInput } from "../hooks/useVoiceInput"
-import type { SpeechState } from "../types"
-import { voiceScripts } from "../data/voiceScripts"
+import useSpeech from "../hooks/useSpeech"
+import type { SpeechState } from "../hooks/useSpeech"
+import useVoiceInput from "../hooks/useVoiceInput"
+import type { VoiceCommand } from "../hooks/useVoiceInput"
 
 interface VoiceContextType {
   speechState: SpeechState
   isSpeaking: boolean
   isMuted: boolean
   setIsMuted: React.Dispatch<React.SetStateAction<boolean>>
+  isPaused: boolean
   speak: (text: string, onEnd?: () => void) => void
   stop: () => void
+  pause: () => void
+  resume: () => void
   toggleMute: () => void
+  unblockAudio: () => void
   selectedVoiceName: string
   isListening: boolean
   transcript: string
+  lastCommand: VoiceCommand | null
   startListening: () => void
   stopListening: () => void
+  stream: MediaStream | null
 }
+
 
 const VoiceContext = createContext<VoiceContextType | undefined>(undefined)
 
@@ -40,12 +47,9 @@ export const VoiceProvider: React.FC<VoiceProviderProps> = ({
       if (onNavigate) {
         onNavigate(payload)
       }
-      const script = voiceScripts[payload as keyof typeof voiceScripts]
-      if (script) {
-        speech.speak(script)
-      }
+      // Handled by FloatingAvatar.tsx via useVoice().lastCommand / jumpToManualSection
     } else if (intent === "open-chat") {
-      speech.speak("Opening the RAG Chatbot. Ask me any question!")
+      window.dispatchEvent(new CustomEvent("openChat"))
     } else if (intent === "stop") {
       speech.stop()
     }
@@ -96,15 +100,22 @@ export const VoiceProvider: React.FC<VoiceProviderProps> = ({
         isSpeaking: speech.isSpeaking,
         isMuted: speech.isMuted,
         setIsMuted: speech.setIsMuted,
+        isPaused: speech.isPaused,
         speak: speech.speak,
         stop: speech.stop,
+        pause: speech.pause,
+        resume: speech.resume,
         toggleMute: speech.toggleMute,
+        unblockAudio: speech.unblockAudio,
         selectedVoiceName: speech.selectedVoiceName,
         isListening: voiceInput.isListening,
         transcript: voiceInput.transcript,
+        lastCommand: voiceInput.lastCommand,
         startListening: voiceInput.startListening,
-        stopListening: voiceInput.stopListening
+        stopListening: voiceInput.stopListening,
+        stream: voiceInput.stream
       }}
+
     >
       {children}
     </VoiceContext.Provider>

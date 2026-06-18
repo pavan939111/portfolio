@@ -29,12 +29,14 @@ async def embed_query(text: str) -> list[float]:
     """
     Embed a user question for similarity search.
     Uses input_type='query' for better retrieval.
+    Optimized for low-latency live requests with shorter retry windows.
     """
     client = get_voyage_client()
     if client is None:
         return get_mock_embedding(settings.VOYAGE_EMBEDDING_DIM)
         
-    for attempt in range(5):
+    max_attempts = 3
+    for attempt in range(max_attempts):
         try:
             result = client.embed(
                 texts=[text],
@@ -50,13 +52,19 @@ async def embed_query(text: str) -> list[float]:
             err_msg = str(e).lower()
             is_rate_limit = any(x in err_msg for x in ["rate limit", "payment method", "reduced rate limits"])
             is_transient = any(x in err_msg for x in ["timeout", "timed out", "connection", "pool", "read timeout"])
-            if attempt < 4 and (is_rate_limit or is_transient):
-                sleep_time = 20 if is_rate_limit else 5
-                logger.warning(f"Voyage rate limit/transient hit ({e}). Retrying in {sleep_time} seconds (attempt {attempt+1}/5)...")
+            
+            if attempt < max_attempts - 1 and (is_rate_limit or is_transient):
+                # Live chat optimized fast exponential backoff
+                sleep_time = (2 * (attempt + 1)) if is_rate_limit else (1 * (attempt + 1))
+                logger.warning(
+                    f"Voyage rate limit/transient hit ({e}). "
+                    f"Retrying in {sleep_time} seconds (attempt {attempt+1}/{max_attempts})..."
+                )
                 await asyncio.sleep(sleep_time)
             else:
-                logger.error(f"Embedding query failed: {e}")
+                logger.error(f"Embedding query failed after {attempt+1} attempts: {e}")
                 raise EmbeddingError(f"Voyage AI embedding failed: {e}") from e
+
 
 async def embed_document(text: str) -> list[float]:
     """
