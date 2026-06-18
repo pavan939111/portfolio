@@ -159,5 +159,15 @@ export async function fetchTelemetry(): Promise<TelemetryResponse> {
   return res.json()
 }
 
+export async function getSttToken(): Promise<string> {
+  const res = await fetch(`${API_URL}/api/stt/token`)
+  if (!res.ok) {
+    throw new Error(`Failed to get STT token: ${res.status} ${res.statusText}`)
+  }
+  const data = await res.json()
+  return data.token
+}
+
+
 
 

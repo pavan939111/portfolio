@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { getSttToken } from '../services/api';
 
 export interface VoiceCommand {
   type: string;
@@ -53,13 +54,11 @@ export const useVoiceInput = (onCommand?: (intent: string, payload?: string) => 
       console.warn("Speech recording session is already active.");
       return;
     }
-    const apiKey = import.meta.env.VITE_DEEPGRAM_API_KEY;
-    if (!apiKey) {
-      console.error("VITE_DEEPGRAM_API_KEY is not defined in the environment.");
-      return;
-    }
 
     try {
+      // Fetch a temporary short-lived scoped key from the backend
+      const token = await getSttToken();
+
       // 1. Get microphone audio stream
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
@@ -67,7 +66,7 @@ export const useVoiceInput = (onCommand?: (intent: string, payload?: string) => 
 
       // 2. Establish connection to Deepgram live transcription WebSocket
       const url = "wss://api.deepgram.com/v1/listen?model=nova-3&language=en-IN&interim_results=false&smart_format=true&endpointing=500";
-      const socket = new WebSocket(url, ["token", apiKey]);
+      const socket = new WebSocket(url, ["token", token]);
       socketRef.current = socket;
 
       socket.onopen = () => {
