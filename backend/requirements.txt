@@ -16,5 +16,7 @@ email-validator>=2.1.0
 # System dependency: ffmpeg must be installed on the deployment environment
 # for pydub's audio normalization and padding processing to function correctly.
 pydub>=0.25.1
+audioop-lts; python_version >= "3.13"
+
 
 
