@@ -32,13 +32,14 @@ def build_system_prompt(
     if response_length == "short":
         extra_rules.append(
             "STRICT LENGTH CONSTRAINT: The user is asking a short/simple question. "
-            "You MUST answer in exactly 1 or 2 lines (under 40 words total). "
-            "Avoid listing details or long explanations."
+            "You MUST answer in 1 to 3 lines (under 60 words total) while maintaining a natural flow. "
+            "Avoid long explanations."
         )
     else:
         extra_rules.append(
-            "LENGTH CONSTRAINT: Keep your response concise (under 100 words) "
-            "unless the user specifically requested detailed explanations."
+            "LENGTH CONSTRAINT: Provide a comprehensive and professional response (under 200 words), "
+            "prioritizing specific metrics, achievements, and technical stack details from the context. "
+            "Do not artificially abbreviate your answer if the context contains valuable metrics."
         )
         
     if is_unlisted_topic and unlisted_topic_alternative:

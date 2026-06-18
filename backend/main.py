@@ -57,7 +57,11 @@ init_rate_limiting(app)
 app.add_middleware(RequestResponseLoggingMiddleware)
 
 # 4. CORS settings
-allowed_origins = [settings.FRONTEND_URL]
+allowed_origins = [
+    settings.FRONTEND_URL,
+    "https://pavankumarkunukuntla.vercel.app",
+    "https://portfolio-beige-one-q1ksxgftsb.vercel.app"
+]
 if settings.ENVIRONMENT == "development":
     allowed_origins = [
         "http://localhost:5173",
@@ -69,8 +73,9 @@ if settings.ENVIRONMENT == "development":
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
-    allow_methods=["GET", "POST"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 

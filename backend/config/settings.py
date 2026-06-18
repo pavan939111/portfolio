@@ -39,8 +39,8 @@ class Settings(BaseSettings):
 
     # RAG settings
 
-    MATCH_THRESHOLD: float = 0.45
-    MATCH_COUNT: int = 4
+    MATCH_THRESHOLD: float = 0.38
+    MATCH_COUNT: int = 5
 
     model_config = SettingsConfigDict(
         env_file=".env",
