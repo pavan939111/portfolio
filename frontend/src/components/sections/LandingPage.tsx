@@ -13,7 +13,7 @@ export const LandingPage: React.FC = () => {
     <section
       id="home"
       data-section="home"
-      className="min-h-screen max-w-[1200px] mx-auto w-full flex flex-col justify-between relative overflow-hidden px-6 md:px-12 lg:px-20 py-8 scroll-mt-20"
+      className="min-h-screen max-w-[1200px] mx-auto w-full flex flex-col justify-between relative overflow-hidden px-6 md:px-12 lg:px-20 pt-24 pb-8 md:py-8 scroll-mt-20"
     >
       {/* Scroll indicator animation keyframe embedded locally */}
       <style>{`
@@ -46,8 +46,8 @@ export const LandingPage: React.FC = () => {
 
           {/* Large name display */}
           <h1 className="font-headings font-extrabold tracking-tighter leading-[0.95] text-[var(--text-primary)]">
-            <span className="block text-[clamp(56px,7vw,96px)]">Pavan</span>
-            <span className="block text-[clamp(56px,7vw,96px)]">Kumar</span>
+            <span className="block text-[clamp(44px,8vw,96px)]">Pavan</span>
+            <span className="block text-[clamp(44px,8vw,96px)]">Kumar</span>
           </h1>
 
           {/* Simple horizontal rule divider */}

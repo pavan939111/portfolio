@@ -76,6 +76,8 @@ export const Achievements: React.FC = () => {
           align-items: center;
           gap: 12px;
           padding: 0 24px;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
       `}</style>
 

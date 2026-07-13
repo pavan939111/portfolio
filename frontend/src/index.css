@@ -351,6 +351,10 @@ body.cursor-hover .cursor-ring-inner {
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-secondary);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 /* Chat window slide-up animation */
@@ -438,6 +442,7 @@ body.cursor-hover .cursor-ring-inner {
   right: 0;
   width: var(--chat-panel-width);
   height: 100vh;
+  height: 100dvh;
   z-index: 500;
   transform: translateX(100%);
   transition: transform 0.4s cubic-bezier(0.76, 0, 0.24, 1);
