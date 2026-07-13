@@ -67,11 +67,12 @@ export const TopNav: React.FC = () => {
     <>
       {/* ── DESKTOP FLOATING NAVBAR (Centered capsule, glassmorphism) ── */}
       <nav 
-        className={`hidden md:flex fixed left-1/2 -translate-x-1/2 z-[300] items-center gap-8 font-mono text-[11px] tracking-[2px] uppercase select-none transition-all duration-300 ${
+        className={`hidden md:flex fixed left-1/2 z-[300] items-center gap-8 font-mono text-[11px] tracking-[2px] uppercase select-none transition-all duration-300 ${
           isScrolled 
             ? "top-3 px-8 py-2.5 bg-black/75 backdrop-blur-md border border-[var(--border)] rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.7)]" 
             : "top-4 px-8 py-2.5 bg-black/35 backdrop-blur-sm border border-white/5 rounded-full"
         }`}
+        style={{ transform: "translateX(calc(-50% - 38px))" }}
       >
         {navLinks.map((link) => {
           const isActive = activeSection === link.id
