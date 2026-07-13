@@ -16,10 +16,10 @@ export const TopNav: React.FC = () => {
     { name: "Contact", id: "contact" }
   ]
 
-  // Track page scroll to toggle backdrop-blur background
+  // Track page scroll to toggle background styles
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 80) {
+      if (window.scrollY > 50) {
         setIsScrolled(true)
       } else {
         setIsScrolled(false)
@@ -65,75 +65,81 @@ export const TopNav: React.FC = () => {
 
   return (
     <>
+      {/* ── DESKTOP FLOATING NAVBAR (Centered capsule, glassmorphism) ── */}
       <nav 
-        className={`fixed top-0 left-0 right-0 z-[300] w-full flex items-center justify-between p-4 px-6 md:px-12 transition-all duration-300 ${
+        className={`hidden md:flex fixed left-1/2 -translate-x-1/2 z-[300] items-center gap-8 font-mono text-[11px] tracking-[2px] uppercase select-none transition-all duration-300 ${
           isScrolled 
-            ? "bg-black/90 backdrop-blur-md border-b border-[var(--border)] py-3" 
-            : "bg-transparent py-5"
+            ? "top-3 px-8 py-2.5 bg-black/75 backdrop-blur-md border border-[var(--border)] rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.7)]" 
+            : "top-4 px-8 py-2.5 bg-black/35 backdrop-blur-sm border border-white/5 rounded-full"
         }`}
       >
-        {/* Left Side: Desktop Nav Links */}
-        <div className="hidden md:flex items-center gap-8 font-mono text-[12px] tracking-[2px] uppercase select-none">
-          {navLinks.map((link) => {
-            const isActive = activeSection === link.id
-            return (
-              <button
-                key={link.id}
-                onClick={() => handleLinkClick(link.id)}
-                className={`transition-colors duration-200 cursor-pointer ${
-                  isActive ? "text-[var(--accent-primary)] font-bold" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                }`}
-              >
-                {link.name}
-              </button>
-            )
-          })}
-        </div>
+        {navLinks.map((link) => {
+          const isActive = activeSection === link.id
+          return (
+            <button
+              key={link.id}
+              onClick={() => handleLinkClick(link.id)}
+              className={`transition-colors duration-200 cursor-pointer ${
+                isActive 
+                  ? "text-[var(--accent-primary)] font-extrabold drop-shadow-[0_0_8px_rgba(0,212,255,0.4)]" 
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              }`}
+            >
+              {link.name}
+            </button>
+          )
+        })}
+      </nav>
 
+      {/* ── MOBILE NAVBAR (Full width fixed header) ── */}
+      <nav 
+        className={`flex md:hidden fixed top-0 left-0 right-0 z-[300] w-full items-center justify-between p-4 px-6 transition-all duration-300 ${
+          isScrolled 
+            ? "bg-black/90 backdrop-blur-md border-b border-[var(--border)] py-3" 
+            : "bg-transparent py-4"
+        }`}
+      >
         {/* Mobile menu trigger */}
-        <div className="flex md:hidden select-none">
-          <button
-            onClick={() => setIsMobileMenuOpen(true)}
-            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-1 transition-colors"
-            aria-label="Open Navigation Menu"
-          >
-            <Menu size={20} />
-          </button>
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-1 transition-colors"
+          aria-label="Open Navigation Menu"
+        >
+          <Menu size={20} />
+        </button>
+
+        {/* Brand logo label */}
+        <div className="font-mono text-[10px] tracking-[3px] uppercase text-[var(--accent-primary)] font-bold">
+          PK // DEV
         </div>
 
-        {/* Right Side: Social Media Icons */}
-        <div className="flex items-center gap-5 text-[var(--text-secondary)]">
+        {/* Quick Socials */}
+        <div className="flex items-center gap-4 text-[var(--text-secondary)]">
           <a
             href="https://github.com/pavankumarkunukuntla"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-[var(--text-primary)] transition-colors p-1"
-            title="GitHub"
+            className="hover:text-[var(--text-primary)] transition-colors"
           >
-            <Github size={18} />
+            <Github size={16} />
           </a>
           <a
             href="https://linkedin.com/in/pavankumarkunukuntla"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-[var(--text-primary)] transition-colors p-1"
-            title="LinkedIn"
+            className="hover:text-[var(--text-primary)] transition-colors"
           >
-            <Linkedin size={18} />
-          </a>
-          <a
-            href="mailto:pavankumarkunukuntla@gmail.com"
-            className="hover:text-[var(--text-primary)] transition-colors p-1"
-            title="Email"
-          >
-            <Mail size={18} />
+            <Linkedin size={16} />
           </a>
         </div>
       </nav>
 
-      {/* Full Screen Overlay Navigation for Mobile */}
+      {/* ── MOBILE FULLSCREEN OVERLAY MENU ── */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-[400] w-full h-screen bg-black/98 flex flex-col justify-between p-6 py-12 font-mono select-none animate-fade-in" style={{ animation: "typeChar 0.25s forwards" }}>
+        <div 
+          className="fixed inset-0 z-[400] w-full h-screen bg-black/98 flex flex-col justify-between p-6 py-12 font-mono select-none animate-fade-in"
+          style={{ animation: "typeChar 0.25s forwards" }}
+        >
           {/* Mobile Overlay Header */}
           <div className="flex justify-between items-center w-full">
             <span className="text-[10px] text-[var(--text-muted)] tracking-[3px] uppercase">MENU</span>
@@ -160,8 +166,8 @@ export const TopNav: React.FC = () => {
                 >
                   {link.name}
                 </button>
-              )}
-            )}
+              )
+            })}
           </div>
 
           {/* Mobile Overlay Footer */}
