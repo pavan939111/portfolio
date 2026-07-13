@@ -19,43 +19,21 @@ import { Education } from "./components/sections/Education"
 import { Achievements } from "./components/sections/Achievements"
 import { Contact } from "./components/sections/Contact"
 
+// Top Nav Component
+import { TopNav } from "./components/layout/TopNav"
+
 // Avatar & Chat Components
-import { FloatingAvatar } from "./components/avatar/FloatingAvatar"
 import { ChatButton } from "./components/chatbot/ChatButton"
 import { ChatPanel } from "./components/chatbot/ChatPanel"
 import { TelemetryDashboard } from "./components/ui/TelemetryDashboard"
-import { useVoice } from "./context/VoiceContext"
 
 export default function App() {
   // Initialize scroll reveal animations
   useScrollReveal()
 
   const { isChatOpen } = useChat()
-  const { unblockAudio } = useVoice()
   const [isTelemetryOpen, setIsTelemetryOpen] = useState(false)
   const [isEntered, setIsEntered] = useState(true)
-
-  // Automatically register first-user-gesture event listeners to unblock audio seamlessly
-  React.useEffect(() => {
-    const handleUserGesture = () => {
-      unblockAudio()
-      window.removeEventListener("click", handleUserGesture)
-      window.removeEventListener("scroll", handleUserGesture, { capture: true })
-      window.removeEventListener("keydown", handleUserGesture)
-      window.removeEventListener("touchstart", handleUserGesture)
-    }
-    window.addEventListener("click", handleUserGesture)
-    // Use capture: true for scroll so we capture it immediately
-    window.addEventListener("scroll", handleUserGesture, { passive: true, capture: true })
-    window.addEventListener("keydown", handleUserGesture)
-    window.addEventListener("touchstart", handleUserGesture)
-    return () => {
-      window.removeEventListener("click", handleUserGesture)
-      window.removeEventListener("scroll", handleUserGesture, { capture: true })
-      window.removeEventListener("keydown", handleUserGesture)
-      window.removeEventListener("touchstart", handleUserGesture)
-    }
-  }, [unblockAudio])
 
   return (
     <>
@@ -65,6 +43,7 @@ export default function App() {
       <HUDDisplay />
       <GrainOverlay />
       <ScrollProgress />
+      <TopNav />
 
       <div 
         className="min-h-screen bg-transparent text-[var(--text-primary)] relative"
@@ -143,7 +122,6 @@ export default function App() {
         {/* ── FLOATING CONTROLS ── */}
         {isEntered && (
           <>
-            <FloatingAvatar />
             <ChatButton />
           </>
         )}

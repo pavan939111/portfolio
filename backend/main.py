@@ -8,7 +8,6 @@ from logger.setup import setup_logger
 from middleware import limiter, RequestResponseLoggingMiddleware, register_error_handlers
 from middleware.rate_limit import init_rate_limiting
 from routes import api_router
-from routes.audio import router as audio_router, pre_cache_predefined_clips
 from routes.contact import router as contact_router
 import asyncio
 
@@ -26,9 +25,6 @@ async def lifespan(app: FastAPI):
     logger.info(f"Voyage model: {settings.VOYAGE_MODEL}")
     logger.info(f"Supabase URL: {settings.SUPABASE_URL[:30]}...")
     logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-
-    # Run background pre-caching of voice scripts on start
-    asyncio.create_task(pre_cache_predefined_clips())
 
     yield
 
@@ -81,11 +77,6 @@ app.add_middleware(
 
 # 5. Register routes
 app.include_router(api_router, prefix="/api")
-app.include_router(
-    audio_router,
-    prefix="/api",
-    tags=["Audio"]
-)
 app.include_router(
     contact_router,
     prefix="/api",

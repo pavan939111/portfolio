@@ -24,13 +24,6 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "llama-3.3-70b-versatile"
 
-    # Deepgram AI
-    DEEPGRAM_API_KEY: str = ""
-    DEEPGRAM_TTS_MODEL: str = "aura-2"
-    DEEPGRAM_TTS_VOICE: str = "aura-2-arcas-en"
-    DEEPGRAM_STT_MODEL: str = "nova-3"
-    DEEPGRAM_SAMPLE_RATE: int = 24000
-
     # Resend Mail Configuration
     RESEND_API_KEY: str = ""
     RESEND_FROM_EMAIL: str = "onboarding@resend.dev"

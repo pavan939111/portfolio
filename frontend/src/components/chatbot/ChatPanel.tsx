@@ -2,8 +2,7 @@ import React, { useRef, useEffect } from "react"
 import { useChat } from "../../context/ChatContext"
 import { useChatbot } from "../../hooks/useChatbot"
 import { ChatMessage } from "./ChatMessage"
-import { useVoice } from "../../context/VoiceContext"
-import { X, RefreshCw, Mic, Send } from "lucide-react"
+import { X, RefreshCw, Send } from "lucide-react"
 
 export const ChatPanel: React.FC = () => {
   const { isChatOpen, closeChat } = useChat()
@@ -17,12 +16,7 @@ export const ChatPanel: React.FC = () => {
     clearChat
   } = useChatbot()
   
-  const {
-    startListening,
-    stopListening,
-    isListening,
-    transcript
-  } = useVoice()
+
 
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -53,12 +47,7 @@ export const ChatPanel: React.FC = () => {
 
   const lastMsgRef = useRef<string>("")
 
-  // Sync vocal transcript to the input box while listening
-  useEffect(() => {
-    if (isListening && transcript) {
-      setInputValue(transcript)
-    }
-  }, [isListening, transcript, setInputValue])
+
 
   // Scroll to bottom dynamically during typewriter effect typing
   useEffect(() => {
@@ -475,30 +464,7 @@ export const ChatPanel: React.FC = () => {
             className="focus:border-[var(--accent-primary)] focus:shadow-[0_0_0_3px_rgba(0,212,255,0.08)]"
           />
 
-          {/* Mic button */}
-          <button
-            onMouseDown={startListening}
-            onMouseUp={stopListening}
-            onTouchStart={startListening}
-            onTouchEnd={stopListening}
-            title="Hold to speak"
-            style={{
-              width: "42px",
-              height: "42px",
-              borderRadius: "12px",
-              flexShrink: 0,
-              background: isListening ? "rgba(59,130,246,0.15)" : "var(--bg-tertiary)",
-              border: `1px solid ${isListening ? "#3B82F6" : "var(--border)"}`,
-              color: isListening ? "#3B82F6" : "var(--text-muted)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              transition: "all 0.2s ease"
-            }}
-          >
-            <Mic size={16} />
-          </button>
+
 
           {/* Send button */}
           <button
